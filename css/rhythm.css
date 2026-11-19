@@ -1,0 +1,19 @@
+.rhythm-shell{height:100%;min-height:0;display:flex;flex-direction:column;gap:6px;padding:12px 18px;color:#593d2a;background:linear-gradient(120deg,#fff3d9ed,#f3dfb5df);border:2px solid #b79562;border-radius:18px;box-sizing:border-box;overflow:hidden}
+.rhythm-headline{text-align:center;font-weight:800;font-size:clamp(18px,2vw,26px)}
+.rhythm-instruction{font-size:clamp(13px,1.4vw,17px);text-align:center;margin:0;line-height:1.4}
+.rhythm-meter{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px}
+.rhythm-count{color:#96522c;font-size:19px;min-width:84px}.rhythm-score{font-variant-numeric:tabular-nums}
+.rhythm-stage{position:relative;min-height:95px;flex:1;background:linear-gradient(90deg,transparent 49.5%,#a17b4d66 49.5%,#a17b4d66 50.5%,transparent 50.5%),linear-gradient(#b9996250,#fff8e7d9);border:2px solid #ad8251;border-radius:14px;overflow:hidden}
+.rhythm-lane-labels{position:absolute;z-index:1;top:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;text-align:center;background:#f1dfb8de;padding:5px;font-weight:700;font-size:13px}
+.rhythm-target{position:absolute;left:5%;right:5%;top:80%;height:30px;border-top:4px solid #986139;display:grid;grid-template-columns:1fr 1fr;text-align:center;font-size:12px;color:#805434}
+.rhythm-note{position:absolute;z-index:2;top:-80px;width:65px;height:42px;border:3px solid #6b452a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;box-sizing:border-box;transform:translate(-50%,-50%);font-size:18px;box-shadow:0 3px 0 #67452a26}
+.rhythm-note[hidden]{display:none}.rhythm-note-drum{left:25%;background:#e9b653}.rhythm-note-clap{left:75%;background:#8bb7a2;border-radius:12px}
+.rhythm-drum-art{position:absolute;bottom:0;left:calc(50% - 65px);width:130px;opacity:.22;pointer-events:none}.rhythm-drum-art svg{display:block;width:100%}
+.rhythm-feedback{font-size:clamp(13px,1.35vw,17px);text-align:center;margin:0;min-height:24px;line-height:1.4}
+.rhythm-local-actions{display:flex;justify-content:center;gap:8px;min-height:0}.rhythm-local-actions:empty{display:none}
+.rhythm-start,.rhythm-finish{min-height:44px;padding:8px 22px;border:2px solid #916b3f;background:#f5dfaf;color:#513620;border-radius:12px;font-weight:800;cursor:pointer;font:inherit}
+.rhythm-pad{min-height:64px;min-width:130px;flex:1;max-width:340px;border:3px solid #6e4b30;border-radius:16px;box-shadow:0 4px 0 #89603c;font-size:21px;font-weight:800;color:#4c3323;cursor:pointer;touch-action:manipulation}
+.rhythm-pad-drum{background:#e9b85f}.rhythm-pad-clap{background:#9bc4af}.rhythm-pad:active{transform:translateY(3px);box-shadow:0 1px 0 #89603c}.rhythm-pad-flash{animation:rhythm-tap .18s ease-out}
+@keyframes rhythm-tap{50%{filter:brightness(1.22)}}
+@media(max-width:600px){.rhythm-shell{padding:8px;gap:5px}.rhythm-meter{font-size:12px}.rhythm-score{font-size:12px}.rhythm-pad{min-width:100px;max-width:none}.rhythm-note{width:54px;height:38px}.rhythm-feedback{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.rhythm-pad-flash{animation:none}}

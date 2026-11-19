@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#355b49">
+  <meta name="description" content="조선의 마을에서 사람들의 이야기를 듣고 여덟 가지 놀이로 기억을 되찾는 역사 탐험 게임">
+  <title>조선의 기억 — 사람들이 살아간 나라</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/puzzles.css">
+  <link rel="stylesheet" href="css/action.css">
+  <link rel="stylesheet" href="css/grain.css">
+  <link rel="stylesheet" href="css/rhythm.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <button class="brand" id="home-button" aria-label="조선의 기억 마을로"><span class="brand-seal">記</span><span>조선의 기억<small>사람들이 살아간 나라</small></span></button>
+      <div class="top-actions"><span id="memory-count" aria-live="polite">되찾은 기억 0 / 8</span><button id="sound-button" class="quiet-button" aria-pressed="false">소리 켜기</button><button id="help-button" class="quiet-button">도움말</button></div>
+    </header>
+    <main id="main"></main>
+    <div id="save-status" role="status" aria-live="polite"></div>
+  </div>
+  <dialog id="overlay" aria-labelledby="dialog-title"><div class="dialog-body"><p class="eyebrow" id="dialog-eyebrow"></p><h2 id="dialog-title"></h2><div id="dialog-content"></div><div id="dialog-actions" class="dialog-actions"></div></div></dialog>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
