@@ -1,3 +1,4 @@
+import {normalizeGrainSnapshot} from '../save-state.js';
 const grainSvg = (damaged, seed = 0) => `<svg viewBox="0 0 170 105" aria-hidden="true"><ellipse cx="85" cy="82" rx="65" ry="10" fill="#794e2920"/>${Array.from({length:11},(_,i)=>{const x=37+(i*31+seed*7)%100,y=31+(i*19)%44,r=(i*27)%70-35;return `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse rx="15" ry="6" fill="${damaged?'#c7a363':'#eed197'}" stroke="#78522f" stroke-width="2"/><path d="M-9 0H9" stroke="#b28c52" stroke-width="1.2"/>${damaged&&i%3===0?'<circle r="3" fill="#755035"/><path d="M-5 -3L3 3" stroke="#85643f"/>':''}</g>`}).join('')}</svg>`;
 
 export const grainGames = {6:createGrain};
@@ -5,7 +6,7 @@ export const grainGames = {6:createGrain};
 function createGrain(ctx) {
   const el = (tag, cls='', text='') => ctx.el(tag, cls, text);
   const button = (text, fn, cls='') => ctx.button(text, fn, cls);
-  const state = Object.assign({step:0, selected:null, sorted:[], mistakes:0, fill:0, target:1, meterDone:false, read:[], total:null, extra:null, linked:false, quality:false}, ctx.saved || {});
+  const state = normalizeGrainSnapshot(ctx.saved);
   let stopped=false, paused=false, raf=0;
   const damaged = [true,false,true,false,false,true];
   const names = ['첫째 표본','둘째 표본','셋째 표본','넷째 표본','다섯째 표본','여섯째 표본'];

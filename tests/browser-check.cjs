@@ -9,7 +9,7 @@ const embedded = process.env.EMBEDDED_SERVER === '1';
 const base = process.env.BASE_URL || (embedded?'http://127.0.0.1:4180':'http://127.0.0.1:4173');
 const localRoutes = process.env.LOCAL_ROUTES === '1';
 const appRoot = path.resolve(__dirname, '..');
-const output = path.resolve(__dirname, '../test-results');
+const output = process.env.TEST_OUTPUT_DIR ? path.resolve(process.env.TEST_OUTPUT_DIR) : path.resolve(__dirname, '../test-results');
 fs.mkdirSync(output, { recursive: true });
 const findings = { date: new Date().toISOString(), browser: 'Chrome headless', base:localRoutes?'http://joseon.test/':base, transport:localRoutes?'Playwright fulfills the original repository file bytes; no application state injection':'HTTP server', checks: [], errors: [] };
 function record(name, value) { findings.checks.push({ name, ...value }); console.log(name, JSON.stringify(value)); }

@@ -1,0 +1,28 @@
+const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+const finite=value=>typeof value==='number'&&Number.isFinite(value);
+const bounded=(value,min,max,fallback)=>finite(value)?Math.min(max,Math.max(min,value)):fallback;
+
+export function normalizeSavedGame(value){
+  const raw=record(value)?value:{};
+  const state={completed:{},best:{},snapshots:{},last:1,muted:true};
+  if(record(raw.completed))for(let id=1;id<=8;id++)if(raw.completed[id]===true)state.completed[id]=true;
+  if(record(raw.best))for(const [key,score] of Object.entries(raw.best))if(/^[1-8]:(normal|assist)$/.test(key)&&finite(score)&&score>=0)state.best[key]=Math.min(1e9,Math.round(score));
+  if(record(raw.snapshots)&&record(raw.snapshots[6])&&!state.completed[6])state.snapshots[6]=normalizeGrainSnapshot(raw.snapshots[6]);
+  if(Number.isInteger(raw.last)&&raw.last>=1&&raw.last<=8)state.last=raw.last;
+  if(typeof raw.muted==='boolean')state.muted=raw.muted;
+  return state;
+}
+
+export function normalizeGrainSnapshot(value){
+  const raw=record(value)?value:{};
+  const sorted=Array.isArray(raw.sorted)?[...new Set(raw.sorted.filter(v=>Number.isInteger(v)&&v>=0&&v<6))]:[];
+  const allowedRead=['record','demand','sample'];
+  const read=Array.isArray(raw.read)?[...new Set(raw.read.filter(v=>allowedRead.includes(v)))]:[];
+  const meterDone=sorted.length===6&&raw.meterDone===true;
+  const total=read.length===3&&raw.total===11?11:null;
+  const extra=total===11&&raw.extra===4?4:null;
+  const linked=extra===4&&raw.linked===true;
+  const available=linked&&meterDone?3:meterDone?2:sorted.length===6?1:0;
+  const requested=Number.isInteger(raw.step)&&raw.step>=0&&raw.step<=3?raw.step:available;
+  return {step:Math.min(requested,available),selected:Number.isInteger(raw.selected)&&raw.selected>=0&&raw.selected<6?raw.selected:null,sorted,mistakes:Math.round(bounded(raw.mistakes,0,9999,0)),fill:bounded(raw.fill,0,2.5,0),target:raw.target===2?2:1,meterDone,read,total,extra,linked,quality:linked&&raw.quality===true};
+}
