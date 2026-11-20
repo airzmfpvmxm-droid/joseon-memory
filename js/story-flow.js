@@ -1,5 +1,6 @@
 import {prologue,storyChapters,ending} from './story.js';
 import {createExploration} from './exploration.js';
+import {residentQuestions,renderJournal} from './resident-questions.js';
 
 export function createStoryFlow(api){
  const {el,button,main,chapters}=api;
@@ -26,6 +27,7 @@ export function createStoryFlow(api){
   if(state().started&&state().memories<8)right.append(el('p','journey-era',ch.era));
   const go=button(state().memories===8?'마지막 이야기 다시 보기':state().started?'이야기 이어하기':'이야기 시작',()=>{if(state().memories===8){state().phase='ending';state().line=0;api.save();}continueStory();},'primary');go.id='story-continue';right.append(go);
   right.append(button('놀이 골라하기',()=>{active=false;api.showPractice();},'secondary'));
+  right.append(button('만난 사람과 기억',()=>journal(),'quiet-button'));
   right.append(el('p','journey-note','주민의 부탁을 듣고 놀이를 마치면, 그림 한 부분을 되찾아요. 진행은 이 기기에 저장돼요.'));
   view.append(left,right);main.append(view);go.focus();
  }
@@ -36,7 +38,7 @@ export function createStoryFlow(api){
  }
  function scene(){
   prepare();const s=state(),ch=chapter(),phase=s.phase==='play'?'before':s.phase;
-  if(['before','after'].includes(phase)&&!inConversation){exploration=createExploration({el,button,main,ch,state:s,save:api.save,exit:hub,talk:()=>{if(!s.met.includes(ch.id))s.met.push(ch.id);inConversation=true;api.save();scene();},inspect:(title,text)=>api.inspect(title,text)});return;}
+  if(['before','after'].includes(phase)&&!inConversation){exploration=createExploration({el,button,main,ch,state:s,save:api.save,exit:hub,journal:()=>journal(),talk:()=>{if(!s.met.includes(ch.id))s.met.push(ch.id);inConversation=true;api.save();scene();},inspect:(title,text)=>api.inspect(title,text)});return;}
   const lines=phase==='prologue'?prologue:phase==='ending'?ending:storyChapters[ch.id-1][phase];
   s.line=Math.min(Math.max(0,s.line),lines.length-1);api.save();
   const view=el('section',`story-view campaign-scene scene-${ch.scene}`);view.style.backgroundImage=`url("assets/scene-${phase==='prologue'||phase==='ending'?'village':ch.scene}.webp")`;
@@ -53,6 +55,7 @@ export function createStoryFlow(api){
   else if(phase==='prologue')actions.append(button('첫 번째 풍경으로',()=>{s.phase='before';s.line=0;inConversation=false;api.save();scene();},'primary'));
   else actions.append(button('완성한 그림 보기',()=>{s.phase='done';s.line=0;api.save();hub();},'primary'));
   if(s.line>0)actions.append(button('앞 대사',()=>{s.line--;api.save();scene();},'quiet-button'));
+  if(['before','after'].includes(phase)){const ask=button('궁금한 점 물어보기',()=>questions(ch),'quiet-button');ask.dataset.ask='true';actions.append(ask);}
   if(['before','after'].includes(phase))actions.append(button('주변 둘러보기',()=>{inConversation=false;scene();},'quiet-button'));
   actions.append(button('그림첩으로',hub,'quiet-button'));box.append(quote,actions);view.append(box);main.append(view);actions.querySelector('button')?.focus();
  }
@@ -62,5 +65,23 @@ export function createStoryFlow(api){
  }
  function onStart(){if(!active)return;inConversation=false;state().phase='play';state().line=0;api.save();}
  function onComplete(){if(!active)return;inConversation=false;state().phase='after';state().line=0;api.save();}
+ function journal(id=Math.min(8,state().memories+1),page=Math.floor((id-1)/4)){
+  active=true;inConversation=false;prepare();renderJournal({el,button,main,chapters,state:state(),home:hub,select:journal,visit:revisit,continue:continueStory,goal:id=>storyChapters[id-1].goal},id,page);
+ }
+ function questions(ch,visiting=false){
+  api.hideDialog();const content=el('div','resident-questions');content.append(el('p','',visiting?'다시 찾아왔구나. 어떤 이야기를 더 나눌까?':'궁금한 것을 골라 물어보세요. 정답을 고르는 문제가 아니에요.'));
+  residentQuestions[ch.id-1].forEach((entry,index)=>{
+   const key=`${ch.id}:${index}`,asked=state().asked.includes(key);
+   const b=button(entry.q,()=>{if(!state().asked.includes(key))state().asked.push(key);api.save();api.hideDialog();api.dialog(entry.q,entry.a,[button('다른 점도 물어보기',()=>questions(ch,visiting),'secondary'),button('이야기로 돌아가기',()=>{api.hideDialog();main.querySelector('[data-ask],.exploration-world')?.focus();},'primary')],`${ch.speaker}의 이야기`);},'question-choice');
+   b.setAttribute('aria-description',asked?'이미 나눈 이야기. 다시 들을 수 있어요.':'아직 나누지 않은 이야기');content.append(b);
+  });
+  if(visiting)content.append(el('p','resident-thanks',storyChapters[ch.id-1].after[0][1]));
+  api.dialog(`${ch.speaker}와 더 이야기하기`,content,[button('다시 둘러보기',()=>{api.hideDialog();main.querySelector('[data-ask],.exploration-world')?.focus();},'primary')]);
+ }
+ function revisit(id){
+  if(id>state().memories)return continueStory();active=true;inConversation=false;prepare();
+  const ch=chapters[id-1],visitState={...state(),phase:'after',position:null,visiting:true};
+  exploration=createExploration({el,button,main,ch,state:visitState,save:api.save,exit:()=>journal(id),journal:()=>journal(id),talk:()=>questions(ch,true),inspect:(title,text)=>api.inspect(title,text)});
+ }
  return {get active(){return active;},hub,continue:continueStory,after:()=>{inConversation=false;scene();},onStart,onComplete};
 }

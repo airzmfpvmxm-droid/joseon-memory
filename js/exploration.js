@@ -12,7 +12,7 @@ const places=[
 export function createExploration(api){
  const {el,button,ch,state,main}=api,place=places[ch.id-1];
  const returning=state.phase==='after';
- const root=el('section',`exploration${place.overview?' exploration-overview':''}`);root.dataset.chapter=ch.id;
+ const root=el('section',`exploration${place.overview?' exploration-overview':''}`);root.dataset.chapter=ch.id;if(state.visiting)root.dataset.visiting='true';
  const header=el('div','exploration-heading');header.append(el('div','',`${ch.id}장 · ${ch.era}`),el('h1','',ch.title),el('p','',returning?`${place.name}에게 돌아가 이야기를 들어요.`:`${place.name}을 찾아 말을 걸어 보세요.`));
  const stage=el('div','exploration-stage'),world=el('div','exploration-world');world.style.backgroundImage=`url("${new URL(`assets/scene-${ch.scene}.webp`,document.baseURI).href}")`;world.tabIndex=0;world.setAttribute('role','group');world.setAttribute('aria-label','마을 탐험. 바닥을 누르거나 방향키로 이동. 주민을 누르면 다가가 대화해요.');world.setAttribute('aria-busy','true');
  const loading=el('span','exploration-loading','풍경을 불러오고 있어요.');world.append(loading);
@@ -27,7 +27,7 @@ export function createExploration(api){
  const targetMark=el('span','walk-destination');targetMark.hidden=true;targetMark.setAttribute('aria-hidden','true');
  const footer=el('div','exploration-footer'),talk=button('대화하기',()=>api.talk(),'secondary');talk.id='nearby-talk';talk.disabled=true;
  const relation=el('span','resident-relation',returning?'약속을 마치고 돌아왔어요':state.phase==='play'?'부탁을 받은 사이':state.met.includes(ch.id)?'인사를 나눈 사이':'아직 인사를 나누지 않았어요');
- footer.append(info,relation,talk,button('그림첩으로',api.exit,'quiet-button'));
+ footer.append(info,relation,talk);if(api.journal)footer.append(button('만난 사람과 기억',api.journal,'quiet-button'));footer.append(button('그림첩으로',api.exit,'quiet-button'));
  world.append(prop,npc,targetMark,player);stage.append(world);root.append(header,stage,footer);main.append(root);
  const keys=new Set();const bounds=place.bounds||{minX:8,maxX:92,minY:85,maxY:93};
  let position=state.position?{x:Math.max(bounds.minX,Math.min(bounds.maxX,state.position.x)),y:Math.max(bounds.minY,Math.min(bounds.maxY,state.position.y))}:{x:place.spawn?.[0]||25,y:place.spawn?.[1]||89},target=null,pendingTalk=false,dead=false,raf=0,last=0,saveAt=0;
@@ -46,7 +46,7 @@ export function createExploration(api){
   if(dead)return;const dt=Math.min(.05,(time-last)/1000||0);last=time;
   if(!document.hidden&&!document.querySelector('dialog[open]')){
    let dx=0,dy=0;if(keys.size){dx=(keys.has('arrowright')||keys.has('d')?1:0)-(keys.has('arrowleft')||keys.has('a')?1:0);dy=(keys.has('arrowdown')||keys.has('s')?1:0)-(keys.has('arrowup')||keys.has('w')?1:0);}
-   else if(target){dx=target.x-position.x;dy=target.y-position.y;const distance=Math.hypot(dx,dy);if(distance<1){position={...target};target=null;targetMark.hidden=true;persist();paint();if(pendingTalk){pendingTalk=false;api.talk();return;}}else{dx/=distance;dy/=distance;}}
+   else if(target){dx=target.x-position.x;dy=target.y-position.y;const distance=Math.hypot(dx,dy);if(distance<1){position={...target};target=null;targetMark.hidden=true;persist();paint();if(pendingTalk){pendingTalk=false;api.talk();if(dead)return;}}else{dx/=distance;dy/=distance;}}
    const moving=!!(dx||dy);player.classList.toggle('walking',moving);if(moving){position.x=Math.max(bounds.minX,Math.min(bounds.maxX,position.x+dx*30*dt));position.y=Math.max(bounds.minY,Math.min(bounds.maxY,position.y+dy*30*dt));paint();if(time-saveAt>1200){persist();saveAt=time;}}
   }else keys.clear();
   raf=requestAnimationFrame(frame);
