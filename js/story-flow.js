@@ -1,6 +1,7 @@
 import {prologue,storyChapters,ending} from './story.js';
 import {createExploration} from './exploration.js';
 import {residentQuestions,renderJournal} from './resident-questions.js';
+import {openMemoryReview} from './memory-review.js';
 
 export function createStoryFlow(api){
  const {el,button,main,chapters}=api;
@@ -61,13 +62,14 @@ export function createStoryFlow(api){
  }
  function collect(){
   const s=state();inConversation=false;s.memories=Math.min(8,s.memories+1);s.line=0;s.position=null;s.phase=s.memories===8?'ending':'before';api.save();
-  prepare();const view=el('section','memory-restored');view.append(el('p','eyebrow',`${s.memories} / 8 · 그림 복원`),el('h1','',storyChapters[s.memories-1].memory),painting(),el('p','',s.memories===8?'마지막 기억까지 찾았어요. 이제 박물관으로 돌아가요.':'그림첩의 다음 장이 열렸어요. 다른 시대의 사람을 만나러 가요.'),button(s.memories===8?'마지막 이야기로':'다음 풍경으로',scene,'primary'),button('그림첩으로',hub,'quiet-button'));main.append(view);view.querySelector('.primary').focus();
+  prepare();const view=el('section','memory-restored');view.append(el('p','eyebrow',`${s.memories} / 8 · 그림 복원`),el('h1','',storyChapters[s.memories-1].memory),painting(),el('p','',s.memories===8?'마지막 기억까지 찾았어요. 이제 박물관으로 돌아가요.':'그림첩의 다음 장이 열렸어요. 다른 시대의 사람을 만나러 가요.'),button(s.memories===8?'마지막 이야기로':'다음 풍경으로',scene,'primary'),button('이 기억 되짚기',()=>review(s.memories,()=>view.querySelector('.primary')?.focus()),'secondary'),button('그림첩으로',hub,'quiet-button'));main.append(view);view.querySelector('.primary').focus();
  }
  function onStart(){if(!active)return;inConversation=false;state().phase='play';state().line=0;api.save();}
  function onComplete(){if(!active)return;inConversation=false;state().phase='after';state().line=0;api.save();}
  function journal(id=Math.min(8,state().memories+1),page=Math.floor((id-1)/4)){
-  active=true;inConversation=false;prepare();renderJournal({el,button,main,chapters,state:state(),home:hub,select:journal,visit:revisit,continue:continueStory,goal:id=>storyChapters[id-1].goal},id,page);
+  active=true;inConversation=false;prepare();renderJournal({el,button,main,chapters,state:state(),home:hub,select:journal,visit:revisit,continue:continueStory,review:id=>review(id,()=>journal(id)),goal:id=>storyChapters[id-1].goal},id,page);
  }
+ function review(id,onReturn){openMemoryReview({el,button,state,save:api.save,dialog:api.dialog,close:api.hideDialog,return:onReturn},id);}
  function questions(ch,visiting=false){
   api.hideDialog();const content=el('div','resident-questions');content.append(el('p','',visiting?'다시 찾아왔구나. 어떤 이야기를 더 나눌까?':'궁금한 것을 골라 물어보세요. 정답을 고르는 문제가 아니에요.'));
   residentQuestions[ch.id-1].forEach((entry,index)=>{

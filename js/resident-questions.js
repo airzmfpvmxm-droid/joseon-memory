@@ -51,7 +51,7 @@ export function renderJournal(api,selection=1,page=0){
   const relation=complete?'부탁을 함께 마친 사이':state.met.includes(chosen.id)?'인사를 나눈 사이':'아직 만나지 않았어요';
   detail.append(el('p','journal-relation',`${chosen.speaker} · ${relation}`),el('p','journal-summary',complete?chosen.after:api.goal(chosen.id)),el('p','journal-evidence',state.looked.includes(chosen.id)?'풍경 속 물건을 살펴보았어요.':'풍경 속 물건도 직접 살펴보세요.'));
   const asked=state.asked.filter(key=>key.startsWith(chosen.id+':')).length;detail.append(el('p','journal-evidence',`궁금한 점을 나눈 이야기 ${asked} / 2`));
-  const actions=el('div','journal-actions');actions.append(button(complete?'이곳 다시 찾아가기':'현재 이야기로',()=>complete?api.visit(chosen.id):api.continue(),'primary'));detail.append(actions);
+  const actions=el('div','journal-actions');actions.append(button(complete?'이곳 다시 찾아가기':'현재 이야기로',()=>complete?api.visit(chosen.id):api.continue(),'primary'));if(complete){detail.append(el('p','journal-review-status',state.reviewed.includes(chosen.id)?'놀이 뒤의 생각을 남겼어요.':'놀이에서 떠올린 생각도 남겨 보세요.'));actions.append(button('이 기억 되짚기',()=>api.review(chosen.id),'secondary'));}detail.append(actions);
  }else detail.append(el('p','journal-summary','앞선 사람들의 기억을 찾으면 이 장을 펼칠 수 있어요.'));
  detail.append(el('p','journal-time-note','그림첩은 서로 다른 시대의 기억이에요. 한 마을에서 같은 날 벌어진 사건은 아니에요.'));
  body.append(list,detail);root.append(head,body);main.append(root);head.querySelector('button').focus();
