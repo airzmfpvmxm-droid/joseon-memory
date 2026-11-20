@@ -33,16 +33,21 @@ export function createRoute(ctx) {
   const panel = make(ctx, 'div', 'puzzle-panel route-panel');
   const caption = make(ctx, 'p', 'puzzle-caption');
   const board = make(ctx, 'div', 'route-board'); board.setAttribute('role', 'group'); board.setAttribute('aria-label', '한양 길 회전 판');
-  const markers = make(ctx, 'div', 'route-markers'); markers.innerHTML = '<span>목수 출발</span><span>목적지 · 경복궁</span>';
-  panel.append(caption, markers, board); ctx.mount.append(panel);
-  const info = make(ctx, 'span', 'puzzle-control-note', '길을 누르면 90도 돌아가요.');
+  panel.append(caption, board); ctx.mount.append(panel);
+  const info = make(ctx, 'span', 'puzzle-control-note', '길 칸을 누르면 돌아가요. 초록 길은 출발과 이어진 길이에요.');
   function ends(t) { return t.base.map(d => (d + t.rot) % 4); }
   function art(t) {
     const strokes = ends(t).map(d => ['M50 50 V0','M50 50 H100','M50 50 V100','M50 50 H0'][d]).join(' ');
     return `<svg viewBox="0 0 100 100" aria-hidden="true"><path class="route-road-edge" d="${strokes}"/><path class="route-road" d="${strokes}"/><circle cx="50" cy="50" r="5" fill="#bc8b4b"/></svg>`;
   }
+  function connected() {
+    const seen=new Set([0]),queue=[0];
+    while(queue.length){const i=queue.shift();for(const d of ends(tiles[i])){const y=Math.floor(i/4)+dirs[d][0],x=i%4+dirs[d][1],n=y*4+x;if(y<0||y>3||x<0||x>3||seen.has(n))continue;if(ends(tiles[n]).includes((d+2)%4)){seen.add(n);queue.push(n);}}}
+    return seen;
+  }
   function draw() {
-    tiles.forEach((t, i) => { buttons[i].innerHTML = art(t); buttons[i].setAttribute('aria-label', `${Math.floor(i / 4)+1}행 ${i%4+1}열 길, ${ends(t).map(d=>dirNames[d]).join('·')}`); buttons[i].classList.toggle('route-endpoint', i===0 || i===15); });
+    const reached=connected();
+    tiles.forEach((t, i) => { buttons[i].innerHTML = art(t)+(i===0?'<span class="route-place route-start-label">출발</span><span class="route-person">목수</span>':i===15?'<span class="route-place route-goal-label">도착</span><span class="route-destination">'+['경복궁','장터','나루터'][round]+'</span>':''); buttons[i].classList.toggle('route-connected',reached.has(i)); buttons[i].classList.toggle('route-start',i===0); buttons[i].classList.toggle('route-goal',i===15); buttons[i].setAttribute('aria-description',i===0?'목수가 출발하는 칸. 이곳에서 길을 이으세요.':i===15?'도착 칸. '+['경복궁','장터','나루터'][round]+'까지 연결하세요.':reached.has(i)?'출발지에서 여기까지 길이 연결되었어요.':'눌러서 길을 시계 방향으로 돌리세요.'); buttons[i].setAttribute('aria-label', `${Math.floor(i / 4)+1}행 ${i%4+1}열 길, ${ends(t).map(d=>dirNames[d]).join('·')}`); buttons[i].classList.toggle('route-endpoint', i===0 || i===15); });
   }
   function solved() {
     if (!ends(tiles[0]).includes(3) || !ends(tiles[15]).includes(1)) return false;
@@ -58,16 +63,15 @@ export function createRoute(ctx) {
   }
   function load() {
     path = routePaths[round]; assistRound = ctx.isAssist();
-    markers.lastElementChild.textContent='목적지 · '+['경복궁','종묘','사직단'][round];
     tiles = Array.from({length:16}, (_,i) => ({base:i%2 ? [0,1] : [1,3], rot:0}));
     path.forEach((p,k) => { tiles[p[0]*4+p[1]] = {base:[k ? direction(p,path[k-1]) : 3, k<path.length-1 ? direction(p,path[k+1]) : 1],rot:0}; });
     const changed = path.slice(1, round+3);
     changed.forEach((p,k)=> {tiles[p[0]*4+p[1]].rot=(k%3)+1;});
     board.replaceChildren(); buttons = tiles.map((_,i) => {
-      const b = ctx.button('', () => { if (!life.active) return; selected=i; tiles[i].rot=(tiles[i].rot+1)%4; draw(); ctx.sound('tap'); }, 'route-tile');
+      const b = ctx.button('', () => { if (!life.active) return; if(i===0||i===15){ctx.say(i===0?'여기가 목수의 출발 칸이에요. 바로 옆 길을 눌러 도착 칸까지 이어요.':'여기가 도착 칸이에요. 출발 칸에서 이어진 길이 여기까지 와야 해요.');return;} selected=i; tiles[i].rot=(tiles[i].rot+1)%4; draw(); ctx.sound('tap'); }, 'route-tile');
       b.dataset.cell=String(i); board.append(b); return b;
     });
-    caption.textContent = `길 ${round+1} / 3 · 출발에서 목적지까지 연결해요`;
+    caption.textContent = `길 ${round+1} / 3 · 왼쪽 위 출발에서 오른쪽 아래 도착까지`;
     ctx.setProgress(round/3, `길 ${round}/3`); draw();
     if (assistRound) help();
   }
@@ -90,7 +94,7 @@ export function createRoute(ctx) {
     if(e.key==='ArrowLeft')n=Math.max(0,selected-1);else if(e.key==='ArrowRight')n=Math.min(15,selected+1);else if(e.key==='ArrowUp')n=Math.max(0,selected-4);else if(e.key==='ArrowDown')n=Math.min(15,selected+4);else return;
     e.preventDefault();selected=n;buttons[n].focus();};
   board.addEventListener('keydown',key);life.onCleanup(()=>board.removeEventListener('keydown',key));
-  load();ctx.say('길 조각을 돌려 목수의 수레가 지나갈 길을 만드세요.');
+  load();ctx.say('왼쪽 위 초록색 출발 칸을 찾아보세요. 길을 눌러 돌려 오른쪽 아래 파란색 도착 칸까지 이어요.');
   return {...life,assist:help};
 }
 

@@ -2,3 +2,20 @@
 @media(prefers-reduced-motion:reduce){.observe-world{transition:none}}
 .observe-world>svg{pointer-events:none}
 .observe-hotspot:active{transform:translate(-50%,-50%)}
+.route-panel{background:#fff8e8;color:#382719;gap:10px}
+.route-panel .puzzle-caption{font-size:clamp(16px,1.8vw,21px);line-height:1.35;color:#382719}
+.route-board{gap:4px;border:6px solid #503c29;background:#826e54;box-shadow:0 5px 0 #503c2926}
+.route-tile,.route-tile:nth-child(3n){position:relative;background:#e7edcf!important;overflow:hidden}
+.route-road-edge{stroke:#69482d;stroke-width:42}
+.route-road{stroke:#fff5d7;stroke-width:30}
+.route-connected .route-road-edge{stroke:#164e37}
+.route-connected .route-road{stroke:#31865d}
+.route-endpoint{box-shadow:none}
+.route-start{background:#d5eddb!important;box-shadow:inset 0 0 0 4px #18583d;cursor:help}
+.route-goal{background:#e1ecff!important;box-shadow:inset 0 0 0 4px #234c94;cursor:help}
+.route-place{position:absolute;top:4px;left:4px;padding:3px 8px;border-radius:5px;color:#fff;font-size:clamp(14px,1.6vw,18px);line-height:1.15;font-weight:850;pointer-events:none;box-shadow:0 1px 2px #0003}
+.route-start-label{background:#18583d}.route-goal-label{background:#234c94}
+.route-person,.route-destination{position:absolute;right:4px;bottom:4px;padding:2px 5px;background:#fffdf4;color:#243422;font-size:clamp(12px,1.4vw,16px);line-height:1.2;font-weight:800;border:1px solid #7a896b;border-radius:4px;pointer-events:none}
+.route-destination{color:#163d78;border-color:#6d87b0}
+.route-panel .puzzle-hint{outline:4px dashed #8c4e00!important;outline-offset:-6px}
+.route-panel ~ *{color:#382719}
