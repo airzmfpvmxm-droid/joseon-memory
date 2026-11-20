@@ -27,5 +27,5 @@ async function input(){
   process.env.BASE_URL=config.url;
   process.env.TEST_OUTPUT_DIR=path.resolve(__dirname,'../test-results/live-deployed');
   process.env.EMBEDDED_SERVER='0';process.env.LOCAL_ROUTES='0';
-  require(process.env.LIVE_EDGE==='1'?'./regression-edge.cjs':'./browser-check.cjs');
+  require(process.env.LIVE_STORY==='1'?'./story-flow.cjs':process.env.LIVE_EDGE==='1'?'./regression-edge.cjs':'./browser-check.cjs');
 })().catch(()=>{console.error('Could not initialize the authenticated live-site test. No credentials were logged.');process.exitCode=1;});

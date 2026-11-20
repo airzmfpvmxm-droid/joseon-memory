@@ -4,13 +4,24 @@ const bounded=(value,min,max,fallback)=>finite(value)?Math.min(max,Math.max(min,
 
 export function normalizeSavedGame(value){
   const raw=record(value)?value:{};
-  const state={completed:{},best:{},snapshots:{},last:1,muted:true};
+  const state={completed:{},best:{},snapshots:{},last:1,muted:true,story:normalizeStory(raw.story)};
   if(record(raw.completed))for(let id=1;id<=8;id++)if(raw.completed[id]===true)state.completed[id]=true;
   if(record(raw.best))for(const [key,score] of Object.entries(raw.best))if(/^[1-8]:(normal|assist)$/.test(key)&&finite(score)&&score>=0)state.best[key]=Math.min(1e9,Math.round(score));
-  if(record(raw.snapshots)&&record(raw.snapshots[6])&&!state.completed[6])state.snapshots[6]=normalizeGrainSnapshot(raw.snapshots[6]);
+  if(record(raw.snapshots)&&record(raw.snapshots[6])&&(!state.completed[6]||(state.story.memories===5&&state.story.phase==='play')))state.snapshots[6]=normalizeGrainSnapshot(raw.snapshots[6]);
   if(Number.isInteger(raw.last)&&raw.last>=1&&raw.last<=8)state.last=raw.last;
   if(typeof raw.muted==='boolean')state.muted=raw.muted;
   return state;
+}
+
+function normalizeStory(value){
+  const raw=record(value)?value:{};
+  const memories=Number.isInteger(raw.memories)&&raw.memories>=0&&raw.memories<=8?raw.memories:0;
+  const started=raw.started===true||memories>0;
+  let phase=['prologue','before','play','after','ending','done'].includes(raw.phase)?raw.phase:'prologue';
+  if(memories===8&&!['ending','done'].includes(phase))phase='ending';
+  if(memories<8&&['ending','done'].includes(phase))phase=started?'before':'prologue';
+  if(memories>0&&phase==='prologue')phase='before';
+  return {started,memories,phase,line:Number.isInteger(raw.line)&&raw.line>=0&&raw.line<8?raw.line:0};
 }
 
 export function normalizeGrainSnapshot(value){

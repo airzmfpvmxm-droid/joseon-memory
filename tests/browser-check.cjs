@@ -39,6 +39,7 @@ async function load(page) {
     });
   }
   await page.goto(localRoutes?'http://joseon.test/':base,{waitUntil:'networkidle'});
+  await page.getByRole('button',{name:'놀이 골라하기',exact:true}).click();
 }
 async function begin(page,id,assist=true) {
   await page.locator(`[data-chapter="${id}"]`).click();
@@ -157,7 +158,7 @@ async function main() {
         }else{await page.locator('#pause-button').click();await page.getByRole('button',{name:'마을로',exact:true}).click();}
       }
       if(viewport.width===1024&&!process.env.ONLY_CHAPTER){
-        await page.reload({waitUntil:'networkidle'});
+        await page.reload({waitUntil:'networkidle'});await page.getByRole('button',{name:'놀이 골라하기',exact:true}).click();
         record('save-after-reload',{completedCards:await page.locator('.chapter-state.done').count(),memoryText:await page.locator('#memory-count').innerText()});
         for(const id of [1,6]){await begin(page,id,false);await finishChapter(page,id,false);record(`normal-complete-${id}`,{passed:true});if(id===1){await page.keyboard.press('Escape');record('result-escape-home',{passed:await page.locator('[data-chapter]').count()===8});}else await page.getByRole('button',{name:'마을로',exact:true}).click();}
         await begin(page,4,false);await page.getByRole('button',{name:'왼쪽 길',exact:true}).click();await page.locator('#pause-button').click();const time=await page.locator('#game-time').innerText();await page.waitForTimeout(1300);record('runner-pause',{timeBefore:time,timeAfter:await page.locator('#game-time').innerText(),passed:time===await page.locator('#game-time').innerText()});await page.getByRole('button',{name:'계속하기',exact:true}).click();await page.locator('#pause-button').click();await page.getByRole('button',{name:'마을로',exact:true}).click();
@@ -176,4 +177,5 @@ async function main() {
   }
   if (findings.errors.length || findings.checks.some(c=>c.overflow||c.clippedButtons?.length)) process.exitCode=1;
 }
-main().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={finishChapter};
+if(process.env.STORY_DRIVER_IMPORT!=='1')main().catch(e=>{console.error(e);process.exitCode=1;});
