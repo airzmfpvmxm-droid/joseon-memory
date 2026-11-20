@@ -18,3 +18,5 @@ Chrome·Playwright 실제 버튼 입력으로 각 장의 질문 두 개, 총 16�
 도입 → 8개 도움 모드 놀이 → 귀환 → 결말과 기존 선택 메뉴를 이어서 확인했다. 그림첩의 완료한 8장 상세를 1024×768, 768×1024, 1366×768에서 확인했다. 첫 장의 질문·대화·탐험은 기존 동일 크기의 경로로 확인한다. 실제 기기·학생 이해도·모든 장의 모든 화면 조합은 미검증이다.
 
 변경: resident-questions.js / story-flow.js / exploration.js / save-state.js / app.js / app.css / exploration.css. 검사: story-flow.cjs / journal-checks.cjs.
+
+배포 소스 `846cc2041b3672df520e3f24986732743370913c`, 배포 상태 `succeeded`. 실제 배포 주소에서도 동일 통합 검사를 수행해 16개 질문, 재방문 시 현재 임무 보존, 8장 도움 모드와 결말, 그림첩 세 크기 배치를 통과했다. 페이지 예외와 실패 HTTP 응답은 기록되지 않았다. 공유 범위는 유지했다.
