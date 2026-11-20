@@ -21,7 +21,10 @@ function normalizeStory(value){
   if(memories===8&&!['ending','done'].includes(phase))phase='ending';
   if(memories<8&&['ending','done'].includes(phase))phase=started?'before':'prologue';
   if(memories>0&&phase==='prologue')phase='before';
-  return {started,memories,phase,line:Number.isInteger(raw.line)&&raw.line>=0&&raw.line<8?raw.line:0};
+  const position=record(raw.position)&&finite(raw.position.x)&&finite(raw.position.y)?{x:bounded(raw.position.x,8,92,25),y:bounded(raw.position.y,75,95,89)}:null;
+  const looked=Array.isArray(raw.looked)?[...new Set(raw.looked.filter(n=>Number.isInteger(n)&&n>=1&&n<=8))]:[];
+  const met=Array.isArray(raw.met)?[...new Set(raw.met.filter(n=>Number.isInteger(n)&&n>=1&&n<=8))]:[];
+  return {started,memories,phase,position,looked,met,line:Number.isInteger(raw.line)&&raw.line>=0&&raw.line<8?raw.line:0};
 }
 
 export function normalizeGrainSnapshot(value){

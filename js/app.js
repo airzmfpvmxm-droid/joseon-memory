@@ -37,5 +37,5 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&screen==='playing'&
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 window.addEventListener('resize',()=>{if(screen==='playing')pause();});
 window.addEventListener('pagehide',()=>{if(game?.snapshot&&current&&!gameFinished)data.snapshots[current.id]=game.snapshot();save();});
-story=createStoryFlow({el,button,main,chapters,data:()=>data,hideDialog,dispose,save,top,start,showIntro,showPractice,setScreen:value=>{screen=value;current=null;gameFinished=false;}});
+story=createStoryFlow({el,button,main,chapters,inspect:(title,text)=>showDialog(title,text,[button('계속 둘러보기',()=>{hideDialog();main.querySelector('.exploration-world')?.focus();},'primary')]),data:()=>data,hideDialog,dispose,save,top,start,showIntro,showPractice,setScreen:value=>{screen=value;current=null;gameFinished=false;}});
 top();story.hub();

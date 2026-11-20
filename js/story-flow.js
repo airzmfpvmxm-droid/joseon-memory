@@ -1,11 +1,12 @@
 import {prologue,storyChapters,ending} from './story.js';
+import {createExploration} from './exploration.js';
 
 export function createStoryFlow(api){
  const {el,button,main,chapters}=api;
- let active=true;
+ let active=true,exploration=null,inConversation=false;
  const state=()=>api.data().story;
  const chapter=()=>chapters[Math.min(7,state().memories)];
- function prepare(){api.hideDialog();api.dispose();api.setScreen('story');main.replaceChildren();api.top();}
+ function prepare(){exploration?.destroy();exploration=null;api.hideDialog();api.dispose();api.setScreen('story');main.replaceChildren();api.top();}
  function painting(){
   const art=el('div','memory-painting');art.setAttribute('role','img');art.setAttribute('aria-label',`마을 그림, 여덟 부분 중 ${state().memories}부분 복원`);
   const sketch=el('div','painting-sketch');art.append(sketch);
@@ -14,7 +15,7 @@ export function createStoryFlow(api){
   return art;
  }
  function hub(){
-  active=true;prepare();
+  active=true;inConversation=false;prepare();
   const view=el('section','memory-hub');
   const left=el('div','memory-gallery');left.append(el('p','eyebrow','시간을 건너 모으는 여덟 장의 기억'),el('h1','','사람들이 살아간 나라'),painting());
   const progress=el('div','story-progress');progress.setAttribute('aria-label','그림 복원 진행');
@@ -29,13 +30,13 @@ export function createStoryFlow(api){
   view.append(left,right);main.append(view);go.focus();
  }
  function continueStory(){
-  active=true;state().started=true;api.save();
+  active=true;inConversation=false;state().started=true;api.save();
   if(state().phase==='done')return hub();
-  if(state().phase==='play')return api.showIntro(chapter());
   scene();
  }
  function scene(){
-  prepare();const s=state(),ch=chapter(),phase=s.phase;
+  prepare();const s=state(),ch=chapter(),phase=s.phase==='play'?'before':s.phase;
+  if(['before','after'].includes(phase)&&!inConversation){exploration=createExploration({el,button,main,ch,state:s,save:api.save,exit:hub,talk:()=>{if(!s.met.includes(ch.id))s.met.push(ch.id);inConversation=true;api.save();scene();},inspect:(title,text)=>api.inspect(title,text)});return;}
   const lines=phase==='prologue'?prologue:phase==='ending'?ending:storyChapters[ch.id-1][phase];
   s.line=Math.min(Math.max(0,s.line),lines.length-1);api.save();
   const view=el('section',`story-view campaign-scene scene-${ch.scene}`);view.style.backgroundImage=`url("assets/scene-${phase==='prologue'||phase==='ending'?'village':ch.scene}.webp")`;
@@ -49,16 +50,17 @@ export function createStoryFlow(api){
   if(s.line<lines.length-1)actions.append(button('다음 이야기',()=>{s.line++;api.save();scene();},'primary'));
   else if(phase==='before')actions.append(button('놀이 시작',()=>api.start(ch,'normal'),'primary'),button('천천히 함께하기',()=>api.start(ch,'assist'),'secondary'));
   else if(phase==='after')actions.append(button('그림에 기억 남기기',collect,'primary'));
-  else if(phase==='prologue')actions.append(button('첫 번째 풍경으로',()=>{s.phase='before';s.line=0;api.save();scene();},'primary'));
+  else if(phase==='prologue')actions.append(button('첫 번째 풍경으로',()=>{s.phase='before';s.line=0;inConversation=false;api.save();scene();},'primary'));
   else actions.append(button('완성한 그림 보기',()=>{s.phase='done';s.line=0;api.save();hub();},'primary'));
   if(s.line>0)actions.append(button('앞 대사',()=>{s.line--;api.save();scene();},'quiet-button'));
+  if(['before','after'].includes(phase))actions.append(button('주변 둘러보기',()=>{inConversation=false;scene();},'quiet-button'));
   actions.append(button('그림첩으로',hub,'quiet-button'));box.append(quote,actions);view.append(box);main.append(view);actions.querySelector('button')?.focus();
  }
  function collect(){
-  const s=state();s.memories=Math.min(8,s.memories+1);s.line=0;s.phase=s.memories===8?'ending':'before';api.save();
+  const s=state();inConversation=false;s.memories=Math.min(8,s.memories+1);s.line=0;s.position=null;s.phase=s.memories===8?'ending':'before';api.save();
   prepare();const view=el('section','memory-restored');view.append(el('p','eyebrow',`${s.memories} / 8 · 그림 복원`),el('h1','',storyChapters[s.memories-1].memory),painting(),el('p','',s.memories===8?'마지막 기억까지 찾았어요. 이제 박물관으로 돌아가요.':'그림첩의 다음 장이 열렸어요. 다른 시대의 사람을 만나러 가요.'),button(s.memories===8?'마지막 이야기로':'다음 풍경으로',scene,'primary'),button('그림첩으로',hub,'quiet-button'));main.append(view);view.querySelector('.primary').focus();
  }
- function onStart(){if(!active)return;state().phase='play';state().line=0;api.save();}
- function onComplete(){if(!active)return;state().phase='after';state().line=0;api.save();}
- return {get active(){return active;},hub,continue:continueStory,after:scene,onStart,onComplete};
+ function onStart(){if(!active)return;inConversation=false;state().phase='play';state().line=0;api.save();}
+ function onComplete(){if(!active)return;inConversation=false;state().phase='after';state().line=0;api.save();}
+ return {get active(){return active;},hub,continue:continueStory,after:()=>{inConversation=false;scene();},onStart,onComplete};
 }
