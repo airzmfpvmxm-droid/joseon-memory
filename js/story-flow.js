@@ -1,3 +1,4 @@
+import {restartStoryProgress} from './save-state.js';
 import {prologue,storyChapters,initialCaption,finalCaptions,chapterDialogue,endingDialogue} from './story.js';
 import {createExploration} from './exploration.js';
 import {residentQuestions,renderJournal} from './resident-questions.js';
@@ -27,11 +28,21 @@ export function createStoryFlow(api){
   right.append(el('p','journey-description',state().memories===8?'할머니의 그림 곁에 내가 만난 사람들의 기록을 붙였어요. 처음 쓴 전시 설명은 어떻게 달라졌을까요?':state().started?storyChapters[ch.id-1].goal:'할머니의 그림에 전시 설명을 붙여 주기로 약속했어요. 멋진 건물만 보고 쓰려던 설명에 어떤 이야기가 더 필요할까요?'));
   if(state().started&&state().memories<8)right.append(el('p','journey-era',ch.era));
   const go=button(state().memories===8?'마지막 이야기 다시 보기':state().started?'이야기 이어하기':'이야기 시작',()=>{if(state().memories===8){state().phase='ending';state().line=0;api.save();}continueStory();},'primary');go.id='story-continue';right.append(go);
+  if(state().started)right.append(button('처음부터 다시 시작',confirmRestart,'quiet-button'));
   right.append(button('놀이 골라하기',()=>{active=false;api.showPractice();},'secondary'));
   right.append(button('개정 이야기 다시 읽기',()=>readStories(),'quiet-button'));
   right.append(button('만난 사람과 기억',()=>journal(),'quiet-button'));
   if(state().caption!==null)right.append(button('처음과 지금의 설명 읽기',showCaption,'quiet-button'));else right.append(el('p','journey-note','서로 다른 시대를 여행하며 내가 남길 기록을 골라요. 진행과 선택은 이 기기에 저장돼요.'));
   view.append(left,right);main.append(view);go.focus();
+ }
+ function confirmRestart(){
+  const cancel=button('취소',()=>{api.hideDialog();main.querySelector('#story-continue')?.focus();},'secondary');
+  const restart=button('처음부터 시작하기',()=>{
+   Object.assign(api.data(),restartStoryProgress(api.data()));
+   active=true;inConversation=false;api.save();scene();
+  },'primary');restart.id='confirm-story-restart';
+  api.dialog('이야기를 처음부터 다시 시작할까요?','이야기 진행도, 그림첩 기록과 선택, 진행 중인 놀이는 초기화돼요. 놀이 완료 기록과 최고 점수, 소리 설정은 유지돼요. 할머니의 작업방에서 다시 시작해요.',[cancel,restart]);
+  cancel.focus();
  }
  function continueStory(){
   active=true;inConversation=false;state().started=true;api.save();

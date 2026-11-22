@@ -44,3 +44,13 @@ export function normalizeGrainSnapshot(value){
   const requested=Number.isInteger(raw.step)&&raw.step>=0&&raw.step<=3?raw.step:available;
   return {step:Math.min(requested,available),selected:Number.isInteger(raw.selected)&&raw.selected>=0&&raw.selected<6?raw.selected:null,sorted,mistakes:Math.round(bounded(raw.mistakes,0,9999,0)),fill:bounded(raw.fill,0,2.5,0),target:raw.target===2?2:1,meterDone,read,total,extra,linked,quality:linked&&raw.quality===true};
 }
+
+// Start a fresh story while retaining separate minigame achievements and sound settings.
+export function restartStoryProgress(value){
+ const next=normalizeSavedGame(value);
+ next.story=normalizeSavedGame(null).story;
+ next.story.started=true;
+ next.snapshots={};
+ next.last=1;
+ return next;
+}
