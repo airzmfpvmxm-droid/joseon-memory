@@ -13,7 +13,7 @@ export function createExploration(api){
  const {el,button,ch,state,main}=api,place=places[ch.id-1];
  const returning=state.phase==='after';
  const root=el('section',`exploration${place.overview?' exploration-overview':''}`);root.dataset.chapter=ch.id;if(state.visiting)root.dataset.visiting='true';
- const header=el('div','exploration-heading');header.append(el('div','',`${ch.id}장 · ${ch.era}`),el('h1','',ch.title),el('p','',returning?`${place.name}에게 돌아가 이야기를 들어요.`:`${place.name}을 찾아 말을 걸어 보세요.`));
+ const header=el('div','exploration-heading');header.append(el('div','',`${ch.id}장 · ${ch.era}`),el('h1','',ch.title),el('p','',returning?`${place.name}에게 돌아가 이야기를 들어요.`:`${ch.speaker}에게 다가가 말을 걸어 보세요.`));
  const stage=el('div','exploration-stage'),world=el('div','exploration-world');world.style.backgroundImage=`url("${new URL(`assets/scene-${ch.scene}.webp`,document.baseURI).href}")`;world.tabIndex=0;world.setAttribute('role','group');world.setAttribute('aria-label','마을 탐험. 바닥을 누르거나 방향키로 이동. 주민을 누르면 다가가 대화해요.');world.setAttribute('aria-busy','true');
  const loading=el('span','exploration-loading','풍경을 불러오고 있어요.');world.append(loading);
  const info=el('p','exploration-info');info.setAttribute('role','status');

@@ -26,7 +26,9 @@ function normalizeStory(value){
   const met=Array.isArray(raw.met)?[...new Set(raw.met.filter(n=>Number.isInteger(n)&&n>=1&&n<=8))]:[];
   const asked=Array.isArray(raw.asked)?[...new Set(raw.asked.filter(key=>typeof key==='string'&&/^[1-8]:[01]$/.test(key)))]:[];
   const reviewed=Array.isArray(raw.reviewed)?[...new Set(raw.reviewed.filter(n=>Number.isInteger(n)&&n>=1&&n<=memories))]:[];
-  return {started,memories,phase,position,looked,met,asked,reviewed,line:Number.isInteger(raw.line)&&raw.line>=0&&raw.line<8?raw.line:0};
+  const notes={};if(record(raw.notes))for(let id=1;id<=Math.min(8,memories+1);id++)if(raw.notes[id]===0||raw.notes[id]===1)notes[id]=raw.notes[id];
+  const caption=memories===8&&(raw.caption===0||raw.caption===1)?raw.caption:null;
+  return {started,memories,phase,position,looked,met,asked,reviewed,notes,caption,line:Number.isInteger(raw.line)&&raw.line>=0&&raw.line<16?raw.line:0};
 }
 
 export function normalizeGrainSnapshot(value){
